@@ -30,6 +30,11 @@ function delay(ms) {
 var api = {
     fetchTodos: function(filter) {
         return delay(2000).then(function() {
+
+            if (Math.random() > 0.5) {
+                throw new Error('Boom!')
+            }
+
             switch (filter) {
                 case 'all':
                 return fakeDatabase.todos

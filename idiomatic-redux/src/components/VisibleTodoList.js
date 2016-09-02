@@ -1,10 +1,15 @@
 var React = require('react')
 var connect = require('react-redux').connect
 var withRouter = require('react-router').withRouter
-var toggeTodo = require('../actions').toggeTodo
-var fetchTodos = require('../actions').fetchTodos
+var actions = require('../actions')
 var TodoList = require('./TodoList')
-var getVisibleTodos = require('../reducers').getVisibleTodos
+var FetchError = require('./FetchError')
+var reducers = require('../reducers')
+
+var getVisibleTodos = reducers.getVisibleTodos
+var getIsFetching  = reducers.getIsFetching
+var getErrorMessage  = reducers.getErrorMessage
+
 
 var VisibleTodoList = React.createClass({
     componentDidMount: function() {
@@ -21,19 +26,36 @@ var VisibleTodoList = React.createClass({
         fetchTodos(filter)
     },
     render: function() {
-        return <TodoList {...this.props} />
+        var isFetching = this.props.isFetching
+        var todos = this.props.todos
+        var toggleTodo = this.props.toggleTodo
+        var errorMessage = this.props.errorMessage
+
+        if (isFetching && !todos.length) {
+            return <p>Loading...</p>
+        }
+
+        if (errorMessage && !todos.length) {
+            return <FetchError
+                        message={errorMessage}
+                        onRetry={this.fetchData}/>
+        }
+
+        return <TodoList todos={todos} onTodoClick={toggleTodo}/>
     }
 })
+
+
 
 var mapStateToTodoListProps = function(state, props) {
     var filter =  props.params.filter || 'all'
     return {
+        isFetching: getIsFetching(state, filter),
+        errorMessage: getErrorMessage(state, filter),
         todos: getVisibleTodos(state, filter),
         filter
     }
 }
-
-
 
 // var mapDispatchToTodoListProps = function(dispatch) {
 //     return {
@@ -48,7 +70,8 @@ var mapStateToTodoListProps = function(state, props) {
 
 VisibleTodoList = withRouter(connect(
     mapStateToTodoListProps,
-    {onTodoClick: toggeTodo, fetchTodos}
+    actions
+    //{onTodoClick: toggeTodo, fetchTodos, }
     // mapDispatchToTodoListProps
 )(VisibleTodoList))
 

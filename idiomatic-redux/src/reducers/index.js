@@ -1,13 +1,37 @@
-var Redux = require('redux')
-var todos = require('./todos').todos
-var selectTodos = require('./todos').getVisibleTodos
+var combineReducers = require('redux').combineReducers
+var fromById = require('./byId')
+var fromList = require('./createList')
+var byId = fromById.byId
+var createList = fromList.createList
 
-var todoApp = Redux.combineReducers({
-    todos
+
+
+var listByFilter = combineReducers({
+    all: createList('all'),
+    active: createList('active'),
+    completed: createList('completed')
 })
 
-var getVisibleTodos = function (state, filter) {
-    return selectTodos(state.todos, filter)
+var todos = combineReducers({
+    byId,
+    listByFilter
+})
+
+
+//Selectors
+function getVisibleTodos(state, filter) {
+    var ids = fromList.getIds(state.listByFilter[filter])
+    return ids.map(function(id) {
+        return fromById.getTodo(state.byId, id)
+    })
 }
 
-module.exports = {todoApp, getVisibleTodos};
+function getIsFetching(state, filter) {
+    return fromList.getIsFetching(state.listByFilter[filter])
+}
+
+function getErrorMessage(state, filter) {
+    return fromList.getErrorMessage(state.listByFilter[filter])
+}
+
+module.exports = {todos, getVisibleTodos, getIsFetching, getErrorMessage}

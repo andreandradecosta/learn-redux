@@ -21,6 +21,11 @@
 .Main {
     text-align: left;
     margin: 20px;
+    flex-direction: row;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
 }
 
 @keyframes App-logo-spin {

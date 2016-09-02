@@ -1,43 +1,31 @@
 var createStore = require('redux').createStore
-var reducer = require('./reducers').todoApp
+var applyMiddleware = require('redux').applyMiddleware
+var createLogger = require('redux-logger')
+var thunk = require('redux-thunk').default
+var reducer = require('./reducers').todos
 
-
-function addLoggingToDispatch(store) {
-    var rawDispatch = store.dispatch
-    if (!console.group) {
-        return rawDispatch
-    }
-    return function(action) {
-        console.group(action.type)
-        console.log('%c prev state', 'color: gray', store.getState())
-        console.log('%c action', 'color: blue', action)
-        var returnValue = rawDispatch(action)
-        console.log('%c next state', 'color: green', store.getState())
-        console.groupEnd(action.type)
-        return returnValue
-    }
-}
-
-function addPromiseSupportToDispatch(store) {
-    var rawDispatch = store.dispatch
-    return function(action) {
-        if (typeof action.then === 'function') {
-            return action.then(rawDispatch)
-        }
-        return rawDispatch(action)
-    }
-}
+// function thunk(store) {
+//     return function(next) {
+//         return function(action) {
+//             if (typeof action === 'function') {
+//                 action(store.dispatch, store.getState)
+//             } else {
+//                 next(action)
+//             }
+//         }
+//     }
+// }
 
 
 function configureStore() {
-    var store = createStore(reducer)
-
+    var middlewares = [thunk];
     if (process.env.NODE_ENV !== 'production') {
-        store.dispatch = addLoggingToDispatch(store)
+        middlewares.push(createLogger())
     }
-    store.dispatch = addPromiseSupportToDispatch(store)
-
-    return store
+    return createStore(
+        reducer,
+        applyMiddleware(...middlewares)
+    )
 }
 
 
