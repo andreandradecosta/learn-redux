@@ -2,16 +2,13 @@ function byId(state, action) {
     if (typeof state === 'undefined') {
         state = {}
     }
-    switch (action.type) {
-        case 'FETCH_TODOS_SUCCESS':
-            var nextState = {...state}
-            action.response.forEach(function(todo) {
-                nextState[todo.id] = todo
-            })
-            return nextState
-        default:
-            return state
+    if (action.response) {
+        return {
+            ...state,
+            ...action.response.entities.todos
+        }
     }
+    return state
 }
 
 function getTodo(state, id) {

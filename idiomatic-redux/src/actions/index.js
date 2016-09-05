@@ -1,19 +1,29 @@
-var uuid = require('node-uuid')
 var api = require('../helpers/api')
 var getIsFetching = require('../reducers').getIsFetching
-
+var normalize = require('normalizr').normalize
+var schema = require('./schema')
 
 function addTodo(text) {
-    return {
-        type: 'ADD_TODO',
-        id: uuid.v4(),
-        text: text
+    return function(dispatch) {
+        return api.addTodo(text)
+            .then(function(response) {
+                dispatch({
+                    type: 'ADD_TODO_SUCCESS',
+                    response: normalize(response, schema.todo)
+                })
+            })
     }
 }
+
 function toggleTodo(id) {
-    return {
-        type: 'TOGGLE_TODO',
-        id: id
+    return function(dispatch) {
+        return api.toggleTodo(id)
+            .then(function(response) {
+                dispatch({
+                    type: 'TOGGLE_TODO_SUCCESS',
+                    response: normalize(response, schema.todo)
+                })
+            })
     }
 }
 
@@ -27,13 +37,13 @@ function fetchTodos(filter) {
             type: 'FETCH_TODOS_REQUEST',
             filter: filter
         })
-        
+
         return api.fetchTodos(filter).then(
             function(response) {
                 return dispatch({
                     type: 'FETCH_TODOS_SUCCESS',
                     filter: filter,
-                    response: response
+                    response: normalize(response, schema.arrayOfTodos)
                 })
             },
             function(error) {

@@ -1,16 +1,34 @@
 var combineReducers = require('redux').combineReducers
 
 function createList(filter) {
+    var handleToggle = function(state, action) {
+        var toggledId = action.response.result
+        var entities = action.response.entities
+        var completed = entities.todos[toggledId].completed
+        var shouldRemove = (
+            (completed && filter === 'active') ||
+            (!completed && filter === 'completed')
+        )
+        return shouldRemove ?
+            state.filter(function(id) { return id !== toggledId }):
+            state
+    }
+
     var ids = function(state, action) {
         if (typeof state === 'undefined') {
             state = []
         }
-        if (action.filter !== filter) {
-            return state
-        }
         switch (action.type) {
             case 'FETCH_TODOS_SUCCESS':
-                return action.response.map(function(todo) { return todo.id })
+                return action.filter === filter ?
+                    action.response.result :
+                    state
+            case 'ADD_TODO_SUCCESS':
+                return filter !== 'completed' ?
+                    [...state, action.response.result] :
+                    state
+            case 'TOGGLE_TODO_SUCCESS':
+                return handleToggle(state, action)
             default:
                 return state
         }
